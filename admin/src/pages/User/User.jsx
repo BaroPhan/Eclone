@@ -1,5 +1,6 @@
 import styled from 'styled-components'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { CalendarToday, LocationSearching, MailOutline, PermIdentity, PhoneAndroid, Publish } from '@material-ui/icons'
 
 const Container = styled.div`
@@ -117,9 +118,9 @@ const UpdateUpload = styled.div`
 const UpdateImg = styled.img`
     width: 100px;
     height: 100px;
-    border-radius: 10px;
     object-fit: cover;
     margin-right: 20px;
+    border-radius: 50%;
 `
 const UpdateButton = styled.button`
     border-radius: 5px;
@@ -132,6 +133,9 @@ const UpdateButton = styled.button`
 `
 
 export const User = () => {
+    const params = useParams()
+    const user = useSelector(state => state.user.users).find(item => item._id === params.id)
+    console.log(user)
     return (
         <Container>
             <TitleContainer>
@@ -144,18 +148,18 @@ export const User = () => {
                 <UserShow>
                     <ShowTop>
                         <ShowImg
-                            src="https://images.pexels.com/photos/1152994/pexels-photo-1152994.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500"
+                            src={user.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}
                         />
                         <ShowTopTitle>
-                            <ShowUsername>Anna Becker</ShowUsername>
-                            <ShowUserTitle>Software Engineer</ShowUserTitle>
+                            <ShowUsername>{user.username}</ShowUsername>
+                            {/* <ShowUserTitle>Software Engineer</ShowUserTitle> */}
                         </ShowTopTitle>
                     </ShowTop>
                     <ShowBottom>
                         <ShowTitle>Account Details</ShowTitle>
                         <ShowInfo>
                             <ShowIcon><PermIdentity /></ShowIcon>
-                            <ShowInfoTitle>annabeck99</ShowInfoTitle>
+                            <ShowInfoTitle>{user.username}</ShowInfoTitle>
                         </ShowInfo>
                         <ShowInfo>
                             <ShowIcon><CalendarToday /></ShowIcon>
@@ -168,7 +172,7 @@ export const User = () => {
                         </ShowInfo>
                         <ShowInfo>
                             <ShowIcon><MailOutline /></ShowIcon>
-                            <ShowInfoTitle>annabeck99@gmail.com</ShowInfoTitle>
+                            <ShowInfoTitle>{user.email}</ShowInfoTitle>
                         </ShowInfo>
                         <ShowInfo>
                             <ShowIcon><LocationSearching /></ShowIcon>
@@ -184,24 +188,31 @@ export const User = () => {
                                 <label>Username</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder="annabeck99"
+                                    placeholder={user.username}
                                 />
                             </UpdateItem>
-                            <UpdateItem>
+                            {/* <UpdateItem>
                                 <label>Full Name</label>
                                 <UpdateInput
                                     type="text"
                                     placeholder="Anna Becker"
+                                />
+                            </UpdateItem> */}
+                            <UpdateItem>
+                                <label>Password</label>
+                                <UpdateInput
+                                    type="password"
+                                    placeholder="password"
                                 />
                             </UpdateItem>
                             <UpdateItem>
                                 <label>Email</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder="annabeck99@gmail.com"
+                                    placeholder={user.email}
                                 />
                             </UpdateItem>
-                            <UpdateItem>
+                            {/* <UpdateItem>
                                 <label>Phone</label>
                                 <UpdateInput
                                     type="text"
@@ -214,12 +225,12 @@ export const User = () => {
                                     type="text"
                                     placeholder="New York | USA"
                                 />
-                            </UpdateItem>
+                            </UpdateItem> */}
                         </UpdateLeft>
                         <UpdateRight>
                             <UpdateUpload>
                                 <UpdateImg
-                                    src="https://images.pexels.com/photos/1152994/pexels-photo-1152994.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500"
+                                    src={user.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}
                                     alt=""
                                 />
                                 <label htmlFor="file">

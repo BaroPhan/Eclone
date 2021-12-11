@@ -1,5 +1,7 @@
 import { Visibility } from '@material-ui/icons'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { userRequest } from '../requestMethods'
 
 const Container = styled.div`
     flex: 1;
@@ -55,75 +57,35 @@ const Icon = styled.div`
 `
 
 export const WidgetSm = () => {
+    const [users, setUsers] = useState([])
+    useEffect(() => {
+        const getUsers = async () => {
+            try {
+                const res = await userRequest.get('/users/?new=true')
+                setUsers(res.data)
+            } catch { }
+        }
+        getUsers()
+    },[])
     return (
         <Container>
             <Title>New Join Members</Title>
             <List>
-                <ListItem>
-                    <Img
-                        src="https://images.pexels.com/photos/3992656/pexels-photo-3992656.png?auto=compress&cs=tinysrgb&dpr=2&w=500"
-                    />
-                    <User>
-                        <Username>Anna Keller</Username>
-                        <UserTitle>Software Engineer</UserTitle>
-                    </User>
-                    <Button>
-                        <Icon> <Visibility /></Icon>
-                        Display
-                    </Button>
-                </ListItem>
-                <ListItem>
-                    <Img
-                        src="https://images.pexels.com/photos/3992656/pexels-photo-3992656.png?auto=compress&cs=tinysrgb&dpr=2&w=500"
-                    />
-                    <div className="widgetSmUser">
-                        <Username>Anna Keller</Username>
-                        <UserTitle>Software Engineer</UserTitle>
-                    </div>
-                    <Button>
-                        <Icon> <Visibility /></Icon>
-                        Display
-                    </Button>
-                </ListItem>
-                <ListItem>
-                    <Img
-                        src="https://images.pexels.com/photos/3992656/pexels-photo-3992656.png?auto=compress&cs=tinysrgb&dpr=2&w=500"
-                    />
-                    <div className="widgetSmUser">
-                        <Username>Anna Keller</Username>
-                        <UserTitle>Software Engineer</UserTitle>
-                    </div>
-                    <Button>
-                        <Icon> <Visibility /></Icon>
-                        Display
-                    </Button>
-                </ListItem>
-                <ListItem>
-                    <Img
-                        src="https://images.pexels.com/photos/3992656/pexels-photo-3992656.png?auto=compress&cs=tinysrgb&dpr=2&w=500"
-                    />
-                    <div className="widgetSmUser">
-                        <Username>Anna Keller</Username>
-                        <UserTitle>Software Engineer</UserTitle>
-                    </div>
-                    <Button>
-                        <Icon> <Visibility /></Icon>
-                        Display
-                    </Button>
-                </ListItem>
-                <ListItem>
-                    <Img
-                        src="https://images.pexels.com/photos/3992656/pexels-photo-3992656.png?auto=compress&cs=tinysrgb&dpr=2&w=500"
-                    />
-                    <div className="widgetSmUser">
-                        <Username>Anna Keller</Username>
-                        <UserTitle>Software Engineer</UserTitle>
-                    </div>
-                    <Button>
-                        <Icon> <Visibility /></Icon>
-                        Display
-                    </Button>
-                </ListItem>
+                {users.map(user => (
+                    <ListItem key={user._id}>
+                        <Img
+                            src={user.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}
+                        />
+                        <User>
+                            <Username>{user.username}</Username>
+                            {/* <UserTitle>Software Engineer</UserTitle> */}
+                        </User>
+                        <Button>
+                            <Icon> <Visibility /></Icon>
+                            Display
+                        </Button>
+                    </ListItem>
+                ))}
             </List>
         </Container>
     )

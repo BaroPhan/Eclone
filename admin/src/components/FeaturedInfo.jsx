@@ -1,5 +1,7 @@
 import { ArrowDownward, ArrowUpward } from '@material-ui/icons'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { userRequest } from '../requestMethods'
 
 const Container = styled.div`
     width: 100%;
@@ -43,15 +45,34 @@ const Sub = styled.span`
 `
 
 export const FeaturedInfo = () => {
+    const [stats, setStats] = useState([])
+    const [perc, setPerc] = useState(0)
+    useEffect(() => {
+        const getUsers = async () => {
+            try {
+                const res = await userRequest.get('/orders/income')
+                const list = res.data.sort((a, b) => {
+                    return a._id - b._id
+                })
+                setStats(list)
+                setPerc((res.data[1].total * 100) / res.data[0].total - 100);
+            } catch { }
+        }
+        getUsers()
+    }, [])
     return (
         <Container>
             <Item>
                 <Title>Revanue</Title>
                 <MoneyContainer>
-                    <Money>$$4,415</Money>
+                    <Money>${stats[1]?.total}</Money>
                     <MoneyRate>
-                        -12.4
-                        <Icon bg="negative"><ArrowDownward /></Icon>
+                        {Math.floor(perc)}{" "}%
+                        {perc < 0 ? (
+                            <Icon bg="negative"><ArrowDownward /></Icon>
+                        ) : (
+                            <Icon bg="positive"><ArrowUpward /></Icon>
+                        )}
                     </MoneyRate>
                 </MoneyContainer>
                 <Sub>Compared to last month</Sub>
@@ -61,7 +82,7 @@ export const FeaturedInfo = () => {
                 <MoneyContainer>
                     <Money>$4,415</Money>
                     <MoneyRate>
-                        -1.4 
+                        -1.4
                         <Icon bg="negative"><ArrowDownward /></Icon>
                     </MoneyRate>
                 </MoneyContainer>
@@ -72,7 +93,7 @@ export const FeaturedInfo = () => {
                 <MoneyContainer>
                     <Money>$2,225</Money>
                     <MoneyRate>
-                        +2.4 
+                        +2.4
                         <Icon><ArrowUpward /></Icon>
                     </MoneyRate>
                 </MoneyContainer>

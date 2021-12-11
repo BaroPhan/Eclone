@@ -8,6 +8,7 @@ const Container = styled.div`
     background-color: rgb(251, 251, 255);
     position: sticky;
     top: 50px;    
+    margin-right: 20px;
 `
 const Wrapper = styled.div`
     padding: 20px;

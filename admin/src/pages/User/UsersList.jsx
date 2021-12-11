@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { userRows } from '../dummyData';
+import { useEffect } from 'react'
 import styled from 'styled-components'
 import { Link } from 'react-router-dom';
 import { DeleteOutline } from '@material-ui/icons';
 import { DataGrid } from "@material-ui/data-grid";
+import { getUsers, deleteUser } from '../../redux/apiCalls';
+import { useDispatch, useSelector } from 'react-redux'
 
 const Container = styled.div`
     flex: 4;
@@ -28,16 +29,22 @@ const EditButton = styled.button`
     cursor: pointer;
     margin-right: 20px;
 `
+const Status = styled.p``
 
 export const UsersList = () => {
-    const [data, setData] = useState(userRows);
+    const dispatch = useDispatch()
+    const users = useSelector(state => state.user.users)
+
+    useEffect(() => {
+        getUsers(dispatch)
+    }, [dispatch])
 
     const handleDelete = (id) => {
-        setData(data.filter((item) => item.id !== id));
+        deleteUser(id, dispatch)
     };
 
     const columns = [
-        { field: "id", headerName: "ID", width: 90 },
+        { field: "_id", headerName: "ID", width: 220 },
         {
             field: "user",
             headerName: "User",
@@ -45,7 +52,7 @@ export const UsersList = () => {
             renderCell: (params) => {
                 return (
                     <User>
-                        <Img src={params.row.avatar} alt="" />
+                        <Img src={params.row.img ? params.row.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"} />
                         {params.row.username}
                     </User>
                 );
@@ -53,14 +60,14 @@ export const UsersList = () => {
         },
         { field: "email", headerName: "Email", width: 200 },
         {
-            field: "status",
+            field: "isAdmin",
             headerName: "Status",
             width: 120,
-        },
-        {
-            field: "transaction",
-            headerName: "Transaction Volume",
-            width: 160,
+            renderCell: (params) => {
+                return (
+                    <Status>{params.row.isAdmin ? "Admin" : "User"}</Status>
+                );
+            },
         },
         {
             field: "action",
@@ -69,12 +76,12 @@ export const UsersList = () => {
             renderCell: (params) => {
                 return (
                     <>
-                        <Link to={"/user/" + params.row.id}>
+                        <Link to={"/user/" + params.row._id}>
                             <EditButton>Edit</EditButton>
                         </Link>
                         <DeleteOutline
                             style={{ color: "red", cursor: "pointer" }}
-                            onClick={() => handleDelete(params.row.id)}
+                            onClick={() => handleDelete(params.row._id)}
                         />
                     </>
                 );
@@ -85,10 +92,11 @@ export const UsersList = () => {
     return (
         <Container>
             <DataGrid
-                rows={data}
+                rows={users}
                 disableSelectionOnClick
+                getRowId={row => row._id}
                 columns={columns}
-                pageSize={8}
+                pageSize={20}
                 checkboxSelection
             />
         </Container>

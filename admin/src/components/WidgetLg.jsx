@@ -1,6 +1,8 @@
-import React from 'react'
-
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { userRequest } from '../requestMethods'
+import { format } from 'timeago.js'
+
 const Container = styled.div`
     flex: 2;
     -webkit-box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
@@ -16,6 +18,8 @@ const Table = styled.table`
     border-spacing: 20px;
 `
 const TableRow = styled.tr``
+const TableBody = styled.tbody``
+const TableHeader = styled.thead``
 const Tablehead = styled.th`
     text-align: left;
 `
@@ -43,73 +47,48 @@ const Button = styled.button`
     padding: 5px 7px;
     border: none;
     border-radius: 10px;
-    background-color: #${prop => prop.type === "Approved" ? "e5faf2" : prop.type === "Pending" ? "ebf1fe" : "fff0f1"} ;
-    color: #${prop => prop.type === "Approved" ? "3bb077" : prop.type === "Pending" ? "2a7ade" : "d95087"} ;
+    background-color: #${prop => prop.type === "approved" ? "e5faf2" : prop.type === "pending" ? "ebf1fe" : "fff0f1"} ;
+    color: #${prop => prop.type === "approved" ? "3bb077" : prop.type === "pending" ? "2a7ade" : "d95087"} ;
 `
 
 export const WidgetLg = () => {
+    const [orders, setOrders] = useState([])
+    useEffect(() => {
+        const getOrders = async () => {
+            try {
+                const res = await userRequest.get('/orders/')
+                setOrders(res.data)
+            } catch { }
+        }
+        getOrders()
+    }, [])
+
     return (
         <Container>
             <Title>Latest transactions</Title>
             <Table>
-                <TableRow>
-                    <Tablehead>Customer</Tablehead>
-                    <Tablehead>Date</Tablehead>
-                    <Tablehead>Amount</Tablehead>
-                    <Tablehead>Status</Tablehead>
-                </TableRow>
-                <TableRow>
-                    <User>
-                        <Img
-                            src="https://images.pexels.com/photos/4172933/pexels-photo-4172933.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-                        />
-                        <Name>Susan Carol</Name>
-                    </User>
-                    <Date>2 Jun 2021</Date>
-                    <Amount>$122.00</Amount>
-                    <Status>
-                        <Button type="Approved">Approved</Button>
-                    </Status>
-                </TableRow>
-                <TableRow>
-                    <User>
-                        <Img
-                            src="https://images.pexels.com/photos/4172933/pexels-photo-4172933.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-                        />
-                        <Name>Susan Carol</Name>
-                    </User>
-                    <Date>2 Jun 2021</Date>
-                    <Amount>$122.00</Amount>
-                    <Status>
-                        <Button type="Declined">Declined</Button>
-                    </Status>
-                </TableRow>
-                <TableRow>
-                    <User>
-                        <Img
-                            src="https://images.pexels.com/photos/4172933/pexels-photo-4172933.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-                        />
-                        <Name>Susan Carol</Name>
-                    </User>
-                    <Date>2 Jun 2021</Date>
-                    <Amount>$122.00</Amount>
-                    <Status>
-                        <Button type="Pending">Pending</Button>
-                    </Status>
-                </TableRow>
-                <TableRow>
-                    <User>
-                        <Img
-                            src="https://images.pexels.com/photos/4172933/pexels-photo-4172933.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-                        />
-                        <Name>Susan Carol</Name>
-                    </User>
-                    <Date>2 Jun 2021</Date>
-                    <Amount>$122.00</Amount>
-                    <Status>
-                        <Button type="Approved">Approved</Button>
-                    </Status>
-                </TableRow>
+                <TableHeader>
+                    <TableRow>
+                        <Tablehead>Customer</Tablehead>
+                        <Tablehead>Date</Tablehead>
+                        <Tablehead>Amount</Tablehead>
+                        <Tablehead>Status</Tablehead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {orders.map(order => (
+                        <TableRow key={order._id}>
+                            <User>
+                                <Name>{order.userId}</Name>
+                            </User>
+                            <Date>{format(order.createdAt)}</Date>
+                            <Amount>{order.amount}</Amount>
+                            <Status>
+                                <Button type={order.status}>{order.status}</Button>
+                            </Status>
+                        </TableRow>
+                    ))}
+                </TableBody>
             </Table>
         </Container>
     )
