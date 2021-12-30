@@ -1,17 +1,27 @@
-import { deleteUserFailure, deleteUserStart, deleteUserSuccess, getUsersFailure, getUsersStart, getUsersSuccess, loginFailure, loginStart, loginSuccess } from "./userRedux";
+import { resetState, addUserFailure, addUserStart, addUserSuccess, deleteUserFailure, deleteUserStart, deleteUserSuccess, getUsersFailure, getUsersStart, getUsersSuccess, loginFailure, loginStart, loginSuccess, updateUserStart, updateUserSuccess } from "./userRedux";
 import { publicRequest, userRequest } from "../requestMethods";
-import { getProductsFailure, getProductsStart, getProductsSuccess, deleteProductStart, deleteProductSuccess, deleteProductFailure } from "./productRedux";
+import { getProductsFailure, getProductsStart, getProductsSuccess, deleteProductStart, deleteProductSuccess, deleteProductFailure, addProductStart, addProductSuccess, addProductFailure, updateProductStart, updateProductSuccess, updateProductFailure } from "./productRedux";
+import { getAllCategoriesFailure, getAllCategoriesStart, getAllCategoriesSuccess } from "./categoryRedux";
 
-export const login = async (dispatch, user) => {
+export const login = async (dispatch, user, navigate) => {
     dispatch(loginStart());
     try {
         const res = await publicRequest.post("/auth/login", user);
-        dispatch(loginSuccess(res.data));
+        if (res.data.isAdmin) {
+            dispatch(loginSuccess(res.data))
+            const TOKEN = res.data.accessToken
+            userRequest.defaults.headers.token = `Bearer ${TOKEN}`
+            navigate('/', { replace: true })
+        } else dispatch(loginFailure())
     } catch (err) {
         dispatch(loginFailure());
     }
 };
+export const logOutUser = async (dispatch) => {
+    dispatch(resetState())
+};
 
+//PRODUCT
 export const getProducts = async (dispatch) => {
     dispatch(getProductsStart());
     try {
@@ -21,7 +31,6 @@ export const getProducts = async (dispatch) => {
         dispatch(getProductsFailure());
     }
 };
-
 export const deleteProduct = async (id, dispatch) => {
     dispatch(deleteProductStart());
     try {
@@ -31,8 +40,26 @@ export const deleteProduct = async (id, dispatch) => {
         dispatch(deleteProductFailure());
     }
 };
+export const addProduct = async (product, dispatch) => {
+    dispatch(addProductStart());
+    try {
+        const res = await userRequest.post('/products/', product);
+        dispatch(addProductSuccess(res.data));
+    } catch (err) {
+        dispatch(addProductFailure());
+    }
+};
+export const updateProduct = async (id, data, dispatch) => {
+    dispatch(updateProductStart());
+    try {
+        await userRequest.put(`/products/${id}`, data);
+        dispatch(updateProductSuccess(id, data));
+    } catch (err) {
+        dispatch(updateProductFailure());
+    }
+};
 
-
+//USERS
 export const getUsers = async (dispatch) => {
     dispatch(getUsersStart());
     try {
@@ -51,3 +78,32 @@ export const deleteUser = async (id, dispatch) => {
         dispatch(deleteUserFailure());
     }
 };
+export const addUser = async (user, dispatch) => {
+    dispatch(addUserStart());
+    try {
+        const res = await userRequest.post('/auth/register', user);
+        dispatch(addUserSuccess(res.data));
+    } catch (err) {
+        dispatch(addUserFailure());
+    }
+};
+export const updateUser = async (id, user, dispatch) => {
+    dispatch(updateUserStart());
+    try {
+        await userRequest.put(`/users/${id}`, user);
+        dispatch(updateUserSuccess(id, user));
+    } catch (err) {
+        dispatch(addUserFailure());
+    }
+};
+
+//CATEGORIES
+export const getCategories = async (dispatch) => {
+    dispatch(getAllCategoriesStart());
+    try {
+        const res = await userRequest.get("/categories/");
+        dispatch(getAllCategoriesSuccess(res.data));
+    } catch (err) {
+        dispatch(getAllCategoriesFailure());
+    }
+}

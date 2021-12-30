@@ -10,6 +10,11 @@ import { Product } from "./pages/Product/Product";
 import { ProductsList } from "./pages/Product/ProductsList";
 import { NewProduct } from "./pages/Product/NewProduct";
 import { Login } from "./pages/Login";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { logOutUser } from "./redux/apiCalls";
+import { CategoriesList } from "./pages/Category/CategoriesList";
+import { Category } from "./pages/Category/Category";
 
 const Container = styled.div`
   display: flex;
@@ -17,14 +22,19 @@ const Container = styled.div`
 `
 
 function App() {
-  const admin = JSON.parse(JSON.parse(localStorage.getItem("persist:root")).user).currentUser ? JSON.parse(JSON.parse(localStorage.getItem("persist:root")).user).currentUser.isAdmin : false
-  console.log(admin)
+  const currentUser = useSelector(state => state.user.currentUser)
+  const admin = currentUser ? currentUser.isAdmin : false
+  const dispatch = useDispatch()
   const PrivateRoute = ({ children, admin }) => {
     if (admin) {
       return children
     }
     return <Navigate to="/login" />
   }
+  useEffect(() => {
+    if (!currentUser?.isAdmin)
+      logOutUser(dispatch)
+  }, [dispatch, currentUser]);
   return (
     <Router>
       <Routes>
@@ -42,11 +52,12 @@ function App() {
                   <Route path='/products' element={<ProductsList />} />
                   <Route path='/product/:id' element={<Product />} />
                   <Route path='/newProduct' element={<NewProduct />} />
-                  <Route path='/login' element={<Login />} />
+                  <Route path='/categories' element={<CategoriesList />} />
+                  <Route path='/category/:id' element={<Category />} />
                 </Routes >
               </Container>
             </PrivateRoute>} />
-        <Route path='/login' element={<Login />} />
+        <Route path='/login' element={admin ? <Navigate to='/' /> : <Login />} />
       </Routes>
     </Router >
   );

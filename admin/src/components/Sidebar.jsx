@@ -1,4 +1,4 @@
-import { AttachMoney, BarChart, ChatBubbleOutline, DynamicFeed, LineStyle, MailOutline, PermIdentity, Report, Storefront, Timeline, TrendingUp, WorkOutline } from '@material-ui/icons'
+import { AttachMoney, BarChart, Category, ChatBubbleOutline, DynamicFeed, LineStyle, MailOutline, PermIdentity, Report, Storefront, Timeline, TrendingUp, WorkOutline } from '@material-ui/icons'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -80,6 +80,12 @@ export const Sidebar = () => {
                             <MenuItem>
                                 <Icon> <Storefront /></Icon>
                                 Products
+                            </MenuItem>
+                        </MenuLink>
+                        <MenuLink to="/categories">
+                            <MenuItem>
+                                <Icon> <Category /></Icon>
+                                Categories
                             </MenuItem>
                         </MenuLink>
                         <MenuItem>

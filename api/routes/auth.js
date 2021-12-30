@@ -8,7 +8,7 @@ router.post('/register', async (req, res) => {
     const newUser = new User({ ...req.body, password: CryptoJS.AES.encrypt(req.body.password, process.env.PWRD_SEC_KEY).toString() })
     try {
         await newUser.save()
-        res.status(200).json("User registered!")
+        res.status(200).json(newUser)
     } catch (error) {
         console.log(error)
     }

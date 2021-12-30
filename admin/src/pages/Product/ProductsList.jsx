@@ -44,7 +44,7 @@ export const ProductsList = () => {
         {
             field: "product",
             headerName: "Product",
-            width: 200,
+            width: 300,
             renderCell: (params) => {
                 return (
                     <ListItem>

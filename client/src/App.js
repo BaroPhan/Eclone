@@ -9,7 +9,6 @@ import { Register } from "./pages/Register";
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
-
   return (
     <Router>
       <Routes>

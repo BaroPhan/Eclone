@@ -1,4 +1,10 @@
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
+import { useRef, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
+import app from '../../firebase'
+import { addUser } from '../../redux/apiCalls'
 
 const Container = styled.div`
     flex: 4;
@@ -23,18 +29,8 @@ const UserItem = styled.div`
     & > input {
         height: 20px;
         padding: 10px;
-        border: 1px solid gray;
+        border: ${prop => prop.type === "file" ? "none" : "1px solid gray"};
         border-radius: 5px;
-    }
-`
-const UserGender = styled.div`
-    & > input {
-        margin-top: 15px;
-    }
-    & > label {
-        margin: 10px;
-        font-size: 18px;
-        color: #555;
     }
 `
 const UserSelect = styled.select`
@@ -55,53 +51,120 @@ const AddUserButton = styled.button`
 
 
 export const NewUser = () => {
+    const username = useRef()
+    const fullname = useRef()
+    const email = useRef()
+    const password = useRef()
+    const address = useRef()
+    const phone = useRef()
+    const isAdmin = useRef()
+    const [file, setFile] = useState(null)
+
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const handleClick = (e) => {
+        e.preventDefault()
+        const storage = getStorage(app);
+        if (file) {
+            const storageRef = ref(storage, new Date().getTime() + file.name);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused');
+                            break;
+                        case 'running':
+                            console.log('Upload is running');
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                (error) => {
+                    // A full list of error codes is available at
+                    // https://firebase.google.com/docs/storage/web/handle-errors
+                    switch (error.code) {
+                        case 'storage/unauthorized':
+                            // User doesn't have permission to access the object
+                            break;
+                        case 'storage/canceled':
+                            // User canceled the upload
+                            break;
+
+                        // ...
+
+                        case 'storage/unknown':
+                            // Unknown error occurred, inspect error.serverResponse
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                () => {
+                    // Upload completed successfully, now we can get the download URL
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        // console.log('File available at', downloadURL);
+                        const data = {
+                            username: username.current.value,
+                            fullname: fullname.current.value,
+                            img: downloadURL,
+                            address: address.current.value,
+                            phone: phone.current.value,
+                            email: email.current.value,
+                            password: password.current.value,
+                            isAdmin: isAdmin.current.value
+                        }
+                        addUser(data, dispatch).then(navigate('/users'))
+                    });
+                }
+            );
+        }
+    }
     return (
         <Container>
             <Title>New User</Title>
-            <Form>
+            <Form onSubmit={handleClick}>
                 <UserItem>
                     <label>Username</label>
-                    <input type="text" placeholder="john" />
+                    <input type="text" placeholder="username" ref={username} />
                 </UserItem>
                 <UserItem>
                     <label>Full Name</label>
-                    <input type="text" placeholder="John Smith" />
+                    <input type="text" placeholder="fullname" ref={fullname} />
                 </UserItem>
                 <UserItem>
                     <label>Email</label>
-                    <input type="email" placeholder="john@gmail.com" />
+                    <input type="email" placeholder="email" ref={email} />
                 </UserItem>
                 <UserItem>
                     <label>Password</label>
-                    <input type="password" placeholder="password" />
+                    <input type="password" placeholder="password" ref={password} />
                 </UserItem>
                 <UserItem>
                     <label>Phone</label>
-                    <input type="text" placeholder="+1 123 456 78" />
+                    <input type="text" placeholder="phone number" ref={phone} />
                 </UserItem>
                 <UserItem>
                     <label>Address</label>
-                    <input type="text" placeholder="New York | USA" />
+                    <input type="text" placeholder="address" ref={address} />
                 </UserItem>
-                <UserItem>
-                    <label>Gender</label>
-                    <UserGender>
-                        <input type="radio" name="gender" id="male" value="male" />
-                        <label for="male">Male</label>
-                        <input type="radio" name="gender" id="female" value="female" />
-                        <label for="female">Female</label>
-                        <input type="radio" name="gender" id="other" value="other" />
-                        <label for="other">Other</label>
-                    </UserGender>
+                <UserItem type="file">
+                    <label>Image</label>
+                    <input type="file" id="file" onChange={e => setFile(e.target.files[0])} />
                 </UserItem>
                 <UserItem>
                     <label>Status</label>
-                    <UserSelect>
+                    <UserSelect ref={isAdmin}>
                         <option value="true">Admin</option>
                         <option value="false">User</option>
                     </UserSelect>
                 </UserItem>
-                <AddUserButton>Create</AddUserButton>
+                <AddUserButton type='submit'>Create</AddUserButton>
             </Form>
         </Container>
     )

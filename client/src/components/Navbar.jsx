@@ -3,8 +3,9 @@ import Badge from '@mui/material/Badge';
 import React from 'react'
 import styled from 'styled-components'
 import { mobile } from '../responsive'
-import { Link } from 'react-router-dom'
-import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux';
+import { logOutUser, resetCarts } from '../redux/apiCalls';
 
 const Container = styled.div`
     height: 60px;
@@ -66,12 +67,34 @@ const Right = styled.div`
 const MenuItem = styled.div`
     font-size: 14px;
     margin-left: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     cursor: pointer;
     ${mobile({ fontSize: "12px", marginLeft: "5px" })}
 `
+const Img = styled.img`
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 10px;
+`
+
 
 export const Navbar = () => {
     const quantity = useSelector(state => state.cart.quantity)
+    const user = useSelector(state => state.user.currentUser)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const handleClick = (e) => {
+        e.preventDefault()
+        resetCarts(dispatch)
+        logOutUser(dispatch).then(navigate('/login'))
+    }
+
     return (
         <Container>
             <Wrapper>
@@ -88,16 +111,31 @@ export const Navbar = () => {
                     </Link>
                 </Center>
                 <Right>
-                    <MenuItem>
-                        <Link to='/register' style={{ textDecoration: "none", color: "black" }}>
-                            REGISTER
-                        </Link>
-                    </MenuItem>
-                    <MenuItem>
-                        <Link to='/login' style={{ textDecoration: "none", color: "black" }}>
-                            SIGN IN
-                        </Link>
-                    </MenuItem>
+                    {user
+                        ? <>
+                            <MenuItem onClick={handleClick}>
+                                LOG OUT
+                            </MenuItem>
+                            <MenuItem>
+                                <Link to={`/user/${user._id}`} style={{ textDecoration: "none", color: "black" }}>
+                                    {user.username.toUpperCase()}
+                                </Link>
+                                <Img src={user?.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"} />
+                            </MenuItem>
+                        </>
+                        : <>
+                            <MenuItem>
+                                <Link to='/register' style={{ textDecoration: "none", color: "black" }}>
+                                    REGISTER
+                                </Link>
+                            </MenuItem>
+                            <MenuItem>
+                                <Link to='/login' style={{ textDecoration: "none", color: "black" }}>
+                                    SIGN IN
+                                </Link>
+                            </MenuItem>
+                        </>
+                    }
                     <MenuItem>
                         <Link to='/cart' style={{ textDecoration: "none" }}>
                             <Badge badgeContent={quantity} color="primary" >

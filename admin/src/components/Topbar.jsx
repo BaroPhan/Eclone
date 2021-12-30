@@ -1,7 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
-import { NotificationsNone, Language, Settings } from "@material-ui/icons";
-
+import { NotificationsNone, Settings } from "@material-ui/icons";
+import { Logout } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logOutUser } from '../redux/apiCalls'
 
 const Container = styled.div`
     width: 100%;
@@ -59,6 +62,14 @@ const Img = styled.img`
 
 
 export const Topbar = () => {
+    const user = useSelector(state => state.user.currentUser)
+    const navigate = useNavigate()
+    const dispatch = useDispatch()
+
+    const handleClick = () => {
+        logOutUser(dispatch).then(navigate('/login'))
+    }
+
     return (
         <Container>
             <Wrapper>
@@ -70,14 +81,13 @@ export const Topbar = () => {
                         <NotificationsNone />
                         <IconBadge>2</IconBadge>
                     </IconContainer>
-                    <IconContainer>
-                        <Language />
-                        <IconBadge>2</IconBadge>
+                    <IconContainer onClick={handleClick}>
+                        <Logout />
                     </IconContainer>
                     <IconContainer>
                         <Settings />
                     </IconContainer>
-                    <Img src="https://images.pexels.com/photos/1526814/pexels-photo-1526814.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500"/>
+                    <Img src={user?.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"} />
                 </TopRight>
             </Wrapper>
         </Container>

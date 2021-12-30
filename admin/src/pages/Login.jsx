@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import { login } from '../redux/apiCalls'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const Container = styled.div`
     display: flex;
@@ -11,13 +12,18 @@ const Container = styled.div`
     height: 100vh;
     background-color: darkgray;
 `
-const Wrapper = styled.div`
+const Wrapper = styled.form`
     display: flex;
     flex-direction: column;
     width: 20%;
     background-color: white;
     border-radius: 10px;
     padding: 5px;
+    & > label {
+        color: red;
+        font-weight: 300;  
+        margin: 10px;
+    }
 `
 const Title = styled.h1`
     margin: 10px;
@@ -48,19 +54,20 @@ export const Login = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const dispatch = useDispatch()
-
+    const navigate = useNavigate()
+    const isAdmin = useSelector(state => state.user.error)
     const handleClick = (e) => {
         e.preventDefault()
-        login(dispatch, { username, password })
+        login(dispatch, { username, password }, navigate)
     }
-
     return (
         <Container>
-            <Wrapper>
+            <Wrapper onSubmit={handleClick}>
                 <Title>Admin authentication</Title>
                 <Input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
                 <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-                <Button onClick={handleClick}>LOG IN</Button>
+                {isAdmin && <label>Not an admin</label>}
+                <Button type='submit' >LOG IN</Button>
             </Wrapper>
         </Container>
     )

@@ -48,19 +48,6 @@ const userSlice = createSlice({
         deleteUserFailure: (state) => {
             state.error = true; state.isFetching = false;
         },
-        //UPDATE USER
-        updateUserStart: (state) => {
-            state.isFetching = true;
-            state.error = false;
-        },
-        updateUserSuccess: (state, action) => {
-            state.isFetching = false;
-            state.users[state.users.findIndex(item => item._id === action.payload.id)] = action.payload.user;
-            state.error = false;
-        },
-        updateUserFailure: (state) => {
-            state.error = true; state.isFetching = false;
-        },
         //ADD USER
         addUserStart: (state) => {
             state.isFetching = true;
@@ -74,8 +61,45 @@ const userSlice = createSlice({
         addUserFailure: (state) => {
             state.error = true; state.isFetching = false;
         },
+        //UPDATE USER
+        updateUserStart: (state) => {
+            state.isFetching = true;
+            state.error = false;
+        },
+        updateUserSuccess: (state, action) => {
+            state.isFetching = false;
+            state.users[state.users.findIndex(item => item._id === action.payload.id)] = action.payload.user
+            state.error = false;
+        },
+        updateUserFailure: (state) => {
+            state.error = true; state.isFetching = false;
+        },
+        resetState: (state) => {
+            state.currentUser = null;
+            state.users = [];
+            state.isFetching = false;
+            state.error = false;
+        }
     },
 })
 
-export const { loginStart, loginSuccess, loginFailure, getUsersFailure, getUsersSuccess, getUsersStart, deleteUserStart, deleteUserSuccess, deleteUserFailure, updateUserStart, updateUserSuccess, updateUserFailure, addUserStart, addUserSuccess, addUserFailure } = userSlice.actions
+export const
+    {
+        loginStart,
+        loginSuccess,
+        loginFailure,
+        getUsersFailure,
+        getUsersSuccess,
+        getUsersStart,
+        deleteUserStart,
+        deleteUserSuccess,
+        deleteUserFailure,
+        updateUserStart,
+        updateUserSuccess,
+        updateUserFailure,
+        addUserStart,
+        addUserSuccess,
+        addUserFailure,
+        resetState
+    } = userSlice.actions
 export default userSlice.reducer

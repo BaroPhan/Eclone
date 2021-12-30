@@ -1,5 +1,6 @@
 import { Visibility } from '@material-ui/icons'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { userRequest } from '../requestMethods'
 
@@ -66,7 +67,7 @@ export const WidgetSm = () => {
             } catch { }
         }
         getUsers()
-    },[])
+    }, [])
     return (
         <Container>
             <Title>New Join Members</Title>
@@ -80,10 +81,12 @@ export const WidgetSm = () => {
                             <Username>{user.username}</Username>
                             {/* <UserTitle>Software Engineer</UserTitle> */}
                         </User>
-                        <Button>
-                            <Icon> <Visibility /></Icon>
-                            Display
-                        </Button>
+                        <Link to={`/user/${user._id}`} style={{ textDecoration: "none", color: "black" }}>
+                            <Button>
+                                <Icon> <Visibility /></Icon>
+                                Display
+                            </Button>
+                        </Link>
                     </ListItem>
                 ))}
             </List>

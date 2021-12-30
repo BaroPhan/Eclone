@@ -1,7 +1,11 @@
 import styled from 'styled-components'
-import { Link, useParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { CalendarToday, LocationSearching, MailOutline, PermIdentity, PhoneAndroid, Publish } from '@material-ui/icons'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { LocationSearching, MailOutline, PermIdentity, PhoneAndroid, Publish, SupervisorAccountOutlined } from '@material-ui/icons'
+import { useRef, useState } from 'react'
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
+import app from '../../firebase'
+import { updateUser } from '../../redux/apiCalls'
 
 const Container = styled.div`
     flex: 4;
@@ -99,6 +103,11 @@ const UpdateItem = styled.div`
         margin-bottom: 5px;
         font-size: 14px;
     }
+    & > select {
+        border: 1px solid gray;
+        idth: 250px;
+        height: 30px;
+    }
 `
 const UpdateInput = styled.input`
     border: none;
@@ -133,9 +142,87 @@ const UpdateButton = styled.button`
 `
 
 export const User = () => {
+    const username = useRef()
+    const fullname = useRef()
+    const email = useRef()
+    const password = useRef()
+    const address = useRef()
+    const phone = useRef()
+    const isAdmin = useRef()
+    const [file, setFile] = useState(null)
+
     const params = useParams()
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
     const user = useSelector(state => state.user.users).find(item => item._id === params.id)
-    console.log(user)
+
+    const handleClick = (e) => {
+        e.preventDefault()
+        const storage = getStorage(app);
+        var data = {
+            username: username.current.value,
+            fullname: fullname.current.value,
+            email: email.current.value,
+            password: password.current.value,
+            address: address.current.value,
+            phone: phone.current.value,
+            isAdmin: isAdmin.current.value,
+        }
+        if (file) {
+            const storageRef = ref(storage, new Date().getTime() + file.name);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused');
+                            break;
+                        case 'running':
+                            console.log('Upload is running');
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                (error) => {
+                    // A full list of error codes is available at
+                    // https://firebase.google.com/docs/storage/web/handle-errors
+                    switch (error.code) {
+                        case 'storage/unauthorized':
+                            // User doesn't have permission to access the object
+                            break;
+                        case 'storage/canceled':
+                            // User canceled the upload
+                            break;
+
+                        // ...
+
+                        case 'storage/unknown':
+                            // Unknown error occurred, inspect error.serverResponse
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                () => {
+                    // Upload completed successfully, now we can get the download URL
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        // console.log('File available at', downloadURL);
+                        data = { ...data, img: downloadURL }
+                        updateUser(params.id, data, dispatch).then(navigate('/users'))
+                    });
+                }
+            );
+        }
+        else {
+            data = { ...data, img: user.img }
+            updateUser(params.id, data, dispatch).then(navigate('/users'))
+        }
+    }
+
     return (
         <Container>
             <TitleContainer>
@@ -152,7 +239,7 @@ export const User = () => {
                         />
                         <ShowTopTitle>
                             <ShowUsername>{user.username}</ShowUsername>
-                            {/* <ShowUserTitle>Software Engineer</ShowUserTitle> */}
+                            <ShowUserTitle>{user.fullname}</ShowUserTitle>
                         </ShowTopTitle>
                     </ShowTop>
                     <ShowBottom>
@@ -162,13 +249,13 @@ export const User = () => {
                             <ShowInfoTitle>{user.username}</ShowInfoTitle>
                         </ShowInfo>
                         <ShowInfo>
-                            <ShowIcon><CalendarToday /></ShowIcon>
-                            <ShowInfoTitle>10.12.1999</ShowInfoTitle>
+                            <ShowIcon><SupervisorAccountOutlined /></ShowIcon>
+                            <ShowInfoTitle>{user.isAdmin ? "Admin" : "User"}</ShowInfoTitle>
                         </ShowInfo>
                         <ShowTitle>Contact Details</ShowTitle>
                         <ShowInfo>
                             <ShowIcon><PhoneAndroid /></ShowIcon>
-                            <ShowInfoTitle>+1 123 456 67</ShowInfoTitle>
+                            <ShowInfoTitle>{user.phone}</ShowInfoTitle>
                         </ShowInfo>
                         <ShowInfo>
                             <ShowIcon><MailOutline /></ShowIcon>
@@ -176,56 +263,69 @@ export const User = () => {
                         </ShowInfo>
                         <ShowInfo>
                             <ShowIcon><LocationSearching /></ShowIcon>
-                            <ShowInfoTitle>New York | USA</ShowInfoTitle>
+                            <ShowInfoTitle>{user.address}</ShowInfoTitle>
                         </ShowInfo>
                     </ShowBottom>
                 </UserShow>
                 <UserUpdate>
                     <UpdateTitle>Edit</UpdateTitle>
-                    <UpdateForm>
+                    <UpdateForm onSubmit={handleClick}>
                         <UpdateLeft>
                             <UpdateItem>
                                 <label>Username</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder={user.username}
+                                    defaultValue={user.username}
+                                    ref={username}
                                 />
                             </UpdateItem>
-                            {/* <UpdateItem>
+                            <UpdateItem>
                                 <label>Full Name</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder="Anna Becker"
+                                    defaultValue={user.fullname}
+                                    ref={fullname}
                                 />
-                            </UpdateItem> */}
+                            </UpdateItem>
                             <UpdateItem>
                                 <label>Password</label>
                                 <UpdateInput
                                     type="password"
-                                    placeholder="password"
+                                    defaultValue="password"
+                                    ref={password}
                                 />
                             </UpdateItem>
                             <UpdateItem>
                                 <label>Email</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder={user.email}
+                                    defaultValue={user.email}
+                                    ref={email}
                                 />
                             </UpdateItem>
-                            {/* <UpdateItem>
+                            <UpdateItem>
                                 <label>Phone</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder="+1 123 456 67"
+                                    defaultValue={user.phone}
+                                    ref={phone}
                                 />
                             </UpdateItem>
                             <UpdateItem>
                                 <label>Address</label>
                                 <UpdateInput
                                     type="text"
-                                    placeholder="New York | USA"
+                                    defaultValue={user.address}
+                                    ref={address}
                                 />
-                            </UpdateItem> */}
+                            </UpdateItem>
+                            <UpdateItem>
+                                <label>Status</label>
+                                <select ref={isAdmin}>
+                                    <option value="true">Admin</option>
+                                    <option value="false">User</option>
+                                </select>
+                            </UpdateItem>
                         </UpdateLeft>
                         <UpdateRight>
                             <UpdateUpload>
@@ -236,9 +336,9 @@ export const User = () => {
                                 <label htmlFor="file">
                                     <Publish style={{ cursor: "pointer" }} />
                                 </label>
-                                <input type="file" id="file" style={{ display: "none" }} />
+                                <input type="file" id="file" style={{ display: "none" }} onChange={e => setFile(e.target.files[0])} />
                             </UpdateUpload>
-                            <UpdateButton>Update</UpdateButton>
+                            <UpdateButton type='submit'>Update</UpdateButton>
                         </UpdateRight>
                     </UpdateForm>
                 </UserUpdate>

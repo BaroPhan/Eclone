@@ -24,9 +24,14 @@ const cartSlice = createSlice({
             state.products = state.products.filter(item => item.uuid !== action.payload.uuid)
             state.quantity -= 1
             state.total -= action.payload.price
+        },
+        resetCart: (state) => {
+            state.products = [];
+            state.quantity = 0;
+            state.total = 0;
         }
     },
 })
 
-export const { addProduct, updateCart, removeProduct } = cartSlice.actions
+export const { addProduct, updateCart, removeProduct, resetCart } = cartSlice.actions
 export default cartSlice.reducer

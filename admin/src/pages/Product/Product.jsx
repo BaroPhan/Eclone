@@ -1,10 +1,13 @@
 import { Publish } from '@material-ui/icons'
 import styled from 'styled-components'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Chart } from '../../components/Chart'
-import { useSelector } from 'react-redux'
-import { useEffect, useMemo, useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { userRequest } from '../../requestMethods'
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import app from '../../firebase'
+import { updateProduct } from '../../redux/apiCalls'
 
 const Container = styled.div`flex: 4;`
 const TitleContainer = styled.div`
@@ -63,7 +66,7 @@ const ProductBottom = styled.div`
     -webkit-box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `
-const ProductForm = styled.div`
+const ProductForm = styled.form`
     display: flex;
     justify-content: space-between;
 `
@@ -111,7 +114,17 @@ const EditButton = styled.button`
 export const Product = () => {
     const params = useParams()
     const product = useSelector(state => state.product.products.find(item => item._id === params.id))
+    const name = useRef()
+    const desc = useRef()
+    const cat = useRef()
+    const price = useRef()
+    const color = useRef()
+    const size = useRef()
+    const stock = useRef()
+    const [file, setFile] = useState(null)
+    const dispatch = useDispatch()
     const [stats, setStats] = useState([]);
+    const navigate = useNavigate()
 
     const MONTHS = useMemo(
         () => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], []
@@ -124,7 +137,6 @@ export const Product = () => {
                 const list = res.data.sort((a, b) => {
                     return a._id - b._id
                 })
-                console.log(list)
                 list.map((item) =>
                     setStats((prev) => [
                         ...prev,
@@ -137,6 +149,73 @@ export const Product = () => {
         };
         getStats();
     }, [params.id, MONTHS]);
+
+    const handleClick = (e) => {
+        e.preventDefault()
+        const storage = getStorage(app);
+        var data = {
+            title: name.current.value,
+            desc: desc.current.value,
+            categories: cat.current.value.split(','),
+            size: size.current.value.split(','),
+            color: color.current.value.split(','),
+            price: price.current.value,
+            inStock: stock.current.value,
+        }
+        if (file) {
+            const storageRef = ref(storage, new Date().getTime() + file.name);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused');
+                            break;
+                        case 'running':
+                            console.log('Upload is running');
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                (error) => {
+                    // A full list of error codes is available at
+                    // https://firebase.google.com/docs/storage/web/handle-errors
+                    switch (error.code) {
+                        case 'storage/unauthorized':
+                            // User doesn't have permission to access the object
+                            break;
+                        case 'storage/canceled':
+                            // User canceled the upload
+                            break;
+
+                        // ...
+
+                        case 'storage/unknown':
+                            // Unknown error occurred, inspect error.serverResponse
+                            break;
+                        default:
+                            break;
+                    }
+                },
+                () => {
+                    // Upload completed successfully, now we can get the download URL
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        // console.log('File available at', downloadURL);
+                        data = { ...data, img: downloadURL }
+                        updateProduct(params.id, data, dispatch).then(navigate('/products'))
+                    });
+                }
+            );
+        }
+        else {
+            data = { ...data, img: product.img }
+            updateProduct(params.id, data, dispatch).then(navigate('/products'))
+        }
+    }
     return (
         <Container>
             <TitleContainer>
@@ -171,24 +250,26 @@ export const Product = () => {
                 </ProductTopRight>
             </ProductTop>
             <ProductBottom>
-                <ProductForm>
+                <ProductForm onSubmit={handleClick}>
                     <ProductFormLeft>
                         <label>Product Name</label>
-                        <input type="text" placeholder={product.title} />
-                        <label>Product Description</label>
-                        <input type="text" placeholder={product.desc} />
+                        <input type="text" defaultValue={product.title} ref={name} />
+                        <label>Description</label>
+                        <input type="text" defaultValue={product.desc} ref={desc} />
+                        <label>Size</label>
+                        <input type="text" defaultValue={product.size} ref={size} />
+                        <label>Color</label>
+                        <input type="text" defaultValue={product.color} ref={color} />
+                        <label>Categories</label>
+                        <input type="text" defaultValue={product.categories} ref={cat} />
                         <label>Price</label>
-                        <input type="text" placeholder={product.price} />
+                        <input type="number" defaultValue={product.price} ref={price} />
                         <label>In Stock</label>
-                        <select name="inStock" id="idStock">
+                        <select name="inStock" id="idStock" ref={stock}>
                             <option value="yes">Yes</option>
                             <option value="no">No</option>
                         </select>
-                        <label>Active</label>
-                        <select name="active" id="active">
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                        </select>
+
                     </ProductFormLeft>
                     <ProductFormRight>
                         <ProductUpload>
@@ -196,9 +277,9 @@ export const Product = () => {
                             <label for="file">
                                 <Publish />
                             </label>
-                            <input type="file" id="file" style={{ display: "none" }} />
+                            <input type="file" id="file" style={{ display: "none" }} onChange={e => setFile(e.target.files[0])} />
                         </ProductUpload>
-                        <EditButton>Update</EditButton>
+                        <EditButton type='submit'>Update</EditButton>
                     </ProductFormRight>
                 </ProductForm>
             </ProductBottom>
