@@ -1,7 +1,7 @@
 import { resetState, addUserFailure, addUserStart, addUserSuccess, deleteUserFailure, deleteUserStart, deleteUserSuccess, getUsersFailure, getUsersStart, getUsersSuccess, loginFailure, loginStart, loginSuccess, updateUserStart, updateUserSuccess } from "./userRedux";
 import { publicRequest, userRequest } from "../requestMethods";
 import { getProductsFailure, getProductsStart, getProductsSuccess, deleteProductStart, deleteProductSuccess, deleteProductFailure, addProductStart, addProductSuccess, addProductFailure, updateProductStart, updateProductSuccess, updateProductFailure } from "./productRedux";
-import { getAllCategoriesFailure, getAllCategoriesStart, getAllCategoriesSuccess } from "./categoryRedux";
+import { addCatFailure, addCatStart, addCatSuccess, getAllCategoriesFailure, getAllCategoriesStart, getAllCategoriesSuccess, updateCatFailure, updateCatStart, updateCatSuccess } from "./categoryRedux";
 
 export const login = async (dispatch, user, navigate) => {
     dispatch(loginStart());
@@ -107,3 +107,21 @@ export const getCategories = async (dispatch) => {
         dispatch(getAllCategoriesFailure());
     }
 }
+export const updateCat = async (id, category, dispatch) => {
+    dispatch(updateCatStart());
+    try {
+        await userRequest.put(`/categories/${id}`, category);
+        dispatch(updateCatSuccess(id, category));
+    } catch (err) {
+        dispatch(updateCatFailure());
+    }
+};
+export const addCat = async (category, dispatch) => {
+    dispatch(addCatStart());
+    try {
+        const res = await userRequest.post('/categories/', category);
+        dispatch(addCatSuccess(res.data));
+    } catch (err) {
+        dispatch(addCatFailure());
+    }
+};

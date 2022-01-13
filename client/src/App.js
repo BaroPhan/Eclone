@@ -3,9 +3,12 @@ import { Route, BrowserRouter as Router, Routes, Navigate } from "react-router-d
 import { Cart } from "./pages/Cart";
 import Home from "./pages/Home";
 import { Login } from "./pages/Login";
+import { Orders } from "./pages/Orders";
 import { Product } from "./pages/Product";
 import { ProductList } from "./pages/ProductList";
 import { Register } from "./pages/Register";
+import { User } from "./pages/User";
+import { Wishlist } from "./pages/Wishlist";
 
 function App() {
   const user = useSelector((state) => state.user.currentUser);
@@ -28,6 +31,15 @@ function App() {
       </Routes>
       <Routes>
         <Route path='/cart' element={<Cart />} />
+      </Routes>
+      <Routes>
+        <Route path='/wishlist' element={<Wishlist />} />
+      </Routes>
+      <Routes>
+        <Route path='/profile' element={<User />} />
+      </Routes>
+      <Routes>
+        <Route path='/orders' element={<Orders />} />
       </Routes>
     </Router>
 

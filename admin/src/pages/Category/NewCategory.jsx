@@ -3,7 +3,8 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import app from '../../firebase';
 import { useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addProduct } from '../../redux/apiCalls';
+import { addCat } from '../../redux/apiCalls';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`flex: 4;`
 const Title = styled.h1``
@@ -32,16 +33,11 @@ const AddButton = styled.button`
     cursor: pointer;
 `
 
-export const NewProduct = () => {
+export const NewCategory = () => {
     const name = useRef()
-    const desc = useRef()
-    const cat = useRef()
-    const price = useRef()
-    const color = useRef()
-    const size = useRef()
-    const stock = useRef()
     const [file, setFile] = useState(null)
     const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const handleClick = (e) => {
         e.preventDefault()
@@ -70,10 +66,10 @@ export const NewProduct = () => {
                     // https://firebase.google.com/docs/storage/web/handle-errors
                     switch (error.code) {
                         case 'storage/unauthorized':
-                            // User doesn't have permission to access the object
+                            // Cat doesn't have permission to access the object
                             break;
                         case 'storage/canceled':
-                            // User canceled the upload
+                            // Cat canceled the upload
                             break;
 
                         // ...
@@ -88,61 +84,28 @@ export const NewProduct = () => {
                 () => {
                     // Upload completed successfully, now we can get the download URL
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        // console.log('File available at', downloadURL);
                         const data = {
-                            title: name.current.value,
-                            desc: desc.current.value,
+                            name: name.current.value,
                             img: downloadURL,
-                            categories: cat.current.value.split(','),
-                            size: size.current.value.split(','),
-                            color: color.current.value.split(','),
-                            price: price.current.value,
-                            inStock: stock.current.value
                         }
-                        addProduct(data, dispatch)
+                        addCat(data, dispatch).then(navigate('/categories'))
                     });
                 }
             );
         }
     }
+
     return (
         <Container>
             <Title>New Product</Title>
             <Form onSubmit={handleClick}>
                 <ProductItem>
                     <label>Image</label>
-                    <input type="file" id="file" required onChange={e => setFile(e.target.files[0])} />
+                    <input type="file" id="file" onChange={e => setFile(e.target.files[0])} required />
                 </ProductItem>
                 <ProductItem>
                     <label>Name</label>
-                    <input type="text" placeholder="name" ref={name} required="true" />
-                </ProductItem>
-                <ProductItem>
-                    <label>Description</label>
-                    <input type="text" placeholder="desc" ref={desc} required="true" />
-                </ProductItem>
-                <ProductItem>
-                    <label>Categories</label>
-                    <input type="text" placeholder="jeans, skirt..." ref={cat} />
-                </ProductItem>
-                <ProductItem>
-                    <label>Size</label>
-                    <input type="text" defaultValue="S, M, L, XL" ref={size} />
-                </ProductItem>
-                <ProductItem>
-                    <label>Color</label>
-                    <input type="text" placeholder="black, white..." ref={color} />
-                </ProductItem>
-                <ProductItem>
-                    <label>Price</label>
-                    <input type="number" placeholder="price" ref={price} required="true" />
-                </ProductItem>
-                <ProductItem>
-                    <label>Stock</label>
-                    <select name="active" id="active" ref={stock}>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                    </select>
+                    <input type="text" placeholder="name" ref={name} required />
                 </ProductItem>
                 <AddButton type='submit'>Create</AddButton>
             </Form>

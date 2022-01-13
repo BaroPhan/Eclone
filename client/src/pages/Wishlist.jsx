@@ -1,17 +1,14 @@
 import { Add, Remove } from '@mui/icons-material';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components'
 import { Announcement } from '../components/Announcement'
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar'
 import { mobile } from '../responsive';
-import StripeCheckout from 'react-stripe-checkout';
-import { userRequest } from '../requestMethods';
-import { emptyCarts, updateCart } from '../redux/apiCalls';
+import { updateCart, updateWishlist } from '../redux/apiCalls';
 
-const KEY = process.env.REACT_APP_STRIPE
 
 const Container = styled.div``;
 
@@ -120,6 +117,7 @@ const ProductAmount = styled.div`
 const ProductPrice = styled.div`
     font-size: 30px;
     font-weight: 200;
+    margin-bottom: 20px;
     ${mobile({ marginBottom: "20px" })}
 `;
 
@@ -128,31 +126,6 @@ const Hr = styled.hr`
     border: none;
     height: 1px;
 `;
-
-const Summary = styled.div`
-    flex: 1;
-    border: 0.5px solid lightgray;
-    border-radius: 10px;
-    padding: 20px;
-    height: 50vh;
-`;
-
-const SummaryTitle = styled.h1`
-    font-weight: 200;
-`;
-
-const SummaryItem = styled.div`
-    margin: 30px 0px;
-    display: flex;
-    justify-content: space-between;
-    font-weight: ${(props) => props.type === "total" && "500"};
-    font-size: ${(props) => props.type === "total" && "24px"};
-`;
-
-const SummaryItemText = styled.span``;
-
-const SummaryItemPrice = styled.span``;
-
 const Button = styled.button`
     width: 100%;
     padding: 10px;
@@ -162,31 +135,29 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
-
-
-export const Cart = () => {
-    const cart = useSelector(state => state.cart.currentCart)
+export const Wishlist = () => {
     const wishlist = useSelector(state => state.wishlist.currentList)
-    const user = useSelector(state => state.user.currentUser)
+    const cart = useSelector(state => state.cart.currentCart)
     const dispatch = useDispatch()
-    const navigate = useNavigate()
 
     const handleQuantity = (type, product) => {
+        console.log(product)
         type === "desc"
             ? product.quantity > 1
-                ? updateCart(dispatch, { ...product, quantity: - 1 }, cart)
-                : updateCart(dispatch, product, cart, { remove: true })
-            : updateCart(dispatch, { ...product, quantity: 1 }, cart)
+                ? updateWishlist(dispatch, { ...product, quantity: - 1 }, wishlist)
+                : updateWishlist(dispatch, product, wishlist, { remove: true })
+            : updateWishlist(dispatch, { ...product, quantity: 1 }, wishlist)
     }
-    const onToken = async (token) => {
+    const addToCart = (product) => {
         const data = {
-            userId: user._id,
-            products: cart.products,
-            amount: cart.total,
-            address: token.card.address_city + ', ' + token.card.address_country
+            ...product,
+            quantity: product.quantity,
+            color: product.color,
+            size: product.size,
         }
-        await userRequest.post('/orders/', data).then(emptyCarts(dispatch, cart._id))
+        updateCart(dispatch, data, cart)
     }
+
     return (
         <Container>
             <Navbar />
@@ -209,7 +180,7 @@ export const Cart = () => {
                 </Top>
                 <Bottom>
                     <Info>
-                        {cart.products.map(product => (
+                        {wishlist.products.map(product => (
                             <ProductContainer key={product.uuid}>
                                 <Product>
                                     <ProductDetail>
@@ -234,42 +205,13 @@ export const Cart = () => {
                                             <Remove style={{ cursor: "pointer" }} onClick={() => handleQuantity("desc", product)} />
                                         </ProductAmountContainer>
                                         <ProductPrice>$ {product.quantity * product.price}</ProductPrice>
+                                        <Button onClick={() => addToCart(product)} style={{ width: "30%" }}>ADD TO CART</Button>
                                     </PriceDetail>
                                 </Product>
                                 <Hr />
                             </ProductContainer>
                         ))}
                     </Info>
-                    <Summary>
-                        <SummaryTitle>ORDER SUMMARY</SummaryTitle>
-                        <SummaryItem>
-                            <SummaryItemText>Subtotal</SummaryItemText>
-                            <SummaryItemPrice>{cart.total}</SummaryItemPrice>
-                        </SummaryItem>
-                        <SummaryItem>
-                            <SummaryItemText>Estimated Shipping</SummaryItemText>
-                            <SummaryItemPrice>TODO</SummaryItemPrice>
-                        </SummaryItem>
-                        <SummaryItem>
-                            <SummaryItemText>Shipping Discount</SummaryItemText>
-                            <SummaryItemPrice>TODO</SummaryItemPrice>
-                        </SummaryItem>
-                        <SummaryItem type="total">
-                            <SummaryItemText>Total</SummaryItemText>
-                            <SummaryItemPrice>{cart.total}</SummaryItemPrice>
-                        </SummaryItem>
-                        <StripeCheckout
-                            name="Eclone."
-                            description={`Your total is $${cart.total}`}
-                            amount={cart.total * 100}
-                            stripeKey={KEY}
-                            shippingAddress={true}
-                            billingAddress={false}
-                            token={onToken}
-                        >
-                            <Button>CHECKOUT NOW</Button>
-                        </StripeCheckout>
-                    </Summary>
                 </Bottom>
             </Wrapper>
             <Footer />

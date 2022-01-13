@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 const Container = styled.div`
     flex: 1;
+    width: 33vw;
     margin: 3px;
     height: 70vh;
     position: relative;
@@ -43,10 +44,10 @@ const Button = styled.button`
 export const CategoryItem = ({ item }) => {
     return (
         <Container>
-            <Link to={'/products/' + item.cat}>
+            <Link to={'/products/' + item.name} onClick={() => window.scrollTo(0, 0)}>
                 <Image src={item.img} />
                 <Info>
-                    <Title>{item.title}</Title>
+                    <Title>{item.name}</Title>
                     <Button>SHOP NOW</Button>
                 </Info>
             </Link>

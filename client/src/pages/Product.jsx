@@ -1,16 +1,14 @@
-import { Add, Remove } from '@mui/icons-material'
-import { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { Add, FavoriteBorderOutlined, Remove } from '@mui/icons-material'
+import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { Announcement } from '../components/Announcement'
 import { Footer } from '../components/Footer'
 import { Navbar } from '../components/Navbar'
 import { Newsletter } from '../components/Newsletter'
-import { addProduct } from '../redux/cartRedux'
-import { publicRequest } from '../requestMethods'
 import { mobile } from '../responsive'
-import { v4 as uuidv4 } from 'uuid';
+import { updateCart, updateWishlist } from '../redux/apiCalls'
 
 
 const Container = styled.div``
@@ -104,44 +102,69 @@ const Button = styled.button`
         background-color: #f8f4f4;
     }
 `;
-
+const Icon = styled.div`
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex; align-items: center; justify-content: center;
+    margin: 10px;
+    transition: all 0.5s ease;
+    cursor: pointer;
+    &:hover{
+        color: #a83f39;
+        transform: scale(1.1);
+    }
+`
 
 export const Product = () => {
-    const productId = useParams().id
-    const [product, setProduct] = useState({})
+    const params = useParams()
     const [quantity, setQuantity] = useState(1)
     const [color, setColor] = useState()
     const [size, setSize] = useState()
     const dispatch = useDispatch()
 
-    useEffect(() => {
-        const getProduct = async () => {
-            try {
-                const res = await publicRequest.get('/products/find/' + productId)
-                setProduct(res.data)
-            } catch (error) { console.log(error) }
-        }
-        getProduct()
-    }, [productId])
+    const product = useSelector(state => state.product.products).find(item => item._id === params.id)
+    const cart = useSelector(state => state.cart.currentCart)
+    const wishlist = useSelector(state => state.wishlist.currentList)
 
     const handleQuantity = (type) => {
         if (type === "dec") quantity > 1 && setQuantity(quantity - 1)
         else setQuantity(quantity + 1)
     }
-    const handleClick = () => {
-        dispatch(addProduct({ ...product, quantity, color: color ? color : product.color[0], size: size ? size : product.size[0], uuid: uuidv4() }))
+    const addProductToCart = () => {
+        const data = {
+            ...product,
+            quantity,
+            color: color ? color : product.color[0],
+            size: size ? size : product.size[0],
+        }
+        updateCart(dispatch, data, cart)
+    }
+    const addProductToWishlist = () => {
+        const data = {
+            ...product,
+            quantity,
+            color: color ? color : product.color[0],
+            size: size ? size : product.size[0],
+        }
+        updateWishlist(dispatch, data, wishlist)
     }
 
     return (
-        <Container>F
-            <Navbar />
+        <Container>
             <Announcement />
+            <Navbar />
             <Wraper>
                 <ImgContainer>
                     <Image src={product.img} />
                 </ImgContainer>
                 <Info>
-                    <Title>{product.title}</Title>
+                    <FilterContainer>
+                        <Title>{product.title}</Title>
+                        <Icon onClick={addProductToWishlist}><FavoriteBorderOutlined /></Icon>
+
+                    </FilterContainer>
                     <Desc>{product.desc}</Desc>
                     <Price>$ {product.price}</Price>
                     <FilterContainer>
@@ -166,7 +189,7 @@ export const Product = () => {
                             <Amount>{quantity}</Amount>
                             <Add style={{ cursor: "pointer" }} onClick={() => handleQuantity("inc")} />
                         </AmountContainer>
-                        <Button onClick={handleClick}>ADD TO CART</Button>
+                        <Button onClick={addProductToCart}>ADD TO CART</Button>
                     </AddContainer>
                 </Info>
             </Wraper>

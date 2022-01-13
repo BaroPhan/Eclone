@@ -7,6 +7,7 @@ import { Navbar } from '../components/Navbar'
 import { Newsletter } from '../components/Newsletter'
 import { Products } from '../components/Products'
 import { mobile } from '../responsive'
+import { useSelector } from 'react-redux'
 
 const Container = styled.div``
 const Title = styled.h1`
@@ -38,7 +39,9 @@ const Option = styled.option``
 export const ProductList = () => {
     const [filters, setFilters] = useState({})
     const [sort, setSort] = useState("Newest")
+    const cats = useSelector(state => state.category.categories)
     const params = useParams()
+    const [cat, setCat] = useState(params.tag)
     const filterHandler = (e) => {
         setFilters({
             ...filters,
@@ -49,7 +52,15 @@ export const ProductList = () => {
         <Container>
             <Announcement />
             <Navbar />
-            <Title>{params.tag.toUpperCase()}</Title>
+            <Title>{cat.toUpperCase()}</Title>
+            <Filter>
+                <FilterTitle>Categories:</FilterTitle>
+                <Select onChange={e => setCat(e.target.value)}>
+                    {cats.map(item => (
+                        <Option>{item.name}</Option>
+                    ))}
+                </Select>
+            </Filter>
             <FilterContainer>
                 <Filter>
                     <FilterTitle>Filter Products:</FilterTitle>
@@ -78,7 +89,7 @@ export const ProductList = () => {
                     </Select>
                 </Filter>
             </FilterContainer>
-            <Products cat={params.tag} filters={filters} sort={sort} />
+            <Products cat={cat} filters={filters} sort={sort}/>
             <Newsletter />
             <Footer />
         </Container>

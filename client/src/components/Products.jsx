@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
+import { getProducts } from '../redux/apiCalls'
 import { publicRequest } from '../requestMethods'
 import { Product } from './Product'
 const Container = styled.div`
@@ -9,19 +11,14 @@ const Container = styled.div`
     justify-content: space-between;
 `
 
-export const Products = ({ cat, filters, sort }) => {
-    const [products, setProducts] = useState([])
+export const Products = ({ cat, filters, sort, query }) => {
+    const products = useSelector(state => state.product.products)
     const [filterProducts, setFilterProducts] = useState([])
-    useEffect(() => {
-        const getProducts = async () => {
-            try {
-                const res = await publicRequest.get(cat ? `/products/?category=${cat}` : 'products/')
-                setProducts(res.data)
-            } catch (error) { console.log(error) }
-        }
-        getProducts()
-    }, [cat])
+    const dispatch = useDispatch()
 
+    useEffect(() => {
+        getProducts(dispatch, cat)
+    }, [cat, dispatch])
     useEffect(() => {
         cat && setFilterProducts(products.filter(item => Object.entries(filters).every(([key, value]) => item[key].includes(value))))
     }, [cat, filters, products])

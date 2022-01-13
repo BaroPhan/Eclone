@@ -7,6 +7,7 @@ const authRouter = require('./routes/auth')
 const cartRouter = require('./routes/cart')
 const orderRouter = require('./routes/order')
 const categoryRouter = require('./routes/category')
+const wishlistRouter = require('./routes/wishlist')
 const morgan = require('morgan')
 const cors = require('cors')
 
@@ -26,6 +27,7 @@ app.use('/api/products', productRouter)
 app.use('/api/carts', cartRouter)
 app.use('/api/orders', orderRouter)
 app.use('/api/categories', categoryRouter)
+app.use('/api/wishlists', wishlistRouter)
 
 
 app.listen(process.env.PORT || 5000, () => {

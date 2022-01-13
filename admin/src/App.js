@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { logOutUser } from "./redux/apiCalls";
 import { CategoriesList } from "./pages/Category/CategoriesList";
 import { Category } from "./pages/Category/Category";
+import { NewCategory } from "./pages/Category/NewCategory";
 
 const Container = styled.div`
   display: flex;
@@ -54,6 +55,7 @@ function App() {
                   <Route path='/newProduct' element={<NewProduct />} />
                   <Route path='/categories' element={<CategoriesList />} />
                   <Route path='/category/:id' element={<Category />} />
+                  <Route path='/newCategory' element={<NewCategory />} />
                 </Routes >
               </Container>
             </PrivateRoute>} />

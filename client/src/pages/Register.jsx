@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import styled from 'styled-components'
 import { mobile } from '../responsive'
+import { useDispatch, useSelector } from 'react-redux'
+import { registerUser } from '../redux/apiCalls'
+import { useNavigate } from 'react-router-dom'
 
 const Container = styled.div`
     height: 100vh;
@@ -27,7 +30,6 @@ const Title = styled.h1`
     font-weight: 300;
 `
 const Form = styled.form`
-
     display: flex;
     flex-wrap: wrap ;
 `
@@ -49,24 +51,56 @@ const Button = styled.button`
     color: white;
     cursor: pointer;
 `
+const Error = styled.span`
+    font-size: 12px;
+    margin-top: 10px;
+
+    color: red;
+`
 
 export const Register = () => {
+    const fullname = useRef()
+    const username = useRef()
+    const email = useRef()
+    const address = useRef()
+    const password = useRef()
+    const phone = useRef()
+    const error = useSelector(state => state.user.error)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    //add new cart instantce for new user then just update whenjever
+
+    const handleClick = (e) => {
+        e.preventDefault()
+        const data = {
+            fullname: fullname.current.value,
+            username: username.current.value,
+            email: email.current.value,
+            address: address.current.value,
+            phone: phone.current.value,
+            password: password.current.value
+        }
+        registerUser(dispatch, navigate, data)
+    }
+
     return (
         <Container>
             <Wrapper>
                 <Title>CREATE AN ACCOUNT</Title>
-                <Form>
-                    <Input placeholder='First name' />
-                    <Input placeholder='Last name' />
-                    <Input placeholder='Username' />
-                    <Input placeholder='Email' />
-                    <Input placeholder='Password' />
-                    <Input placeholder='Confirm password' />
+                <Form onSubmit={handleClick}>
+                    <Input placeholder='Full name' ref={fullname} />
+                    <Input placeholder='Username' ref={username} required />
+                    <Input placeholder='Email' ref={email} required type='email' />
+                    <Input placeholder='Address' ref={address} />
+                    <Input placeholder='Phone' type='number' ref={phone} />
+                    <Input placeholder='Password' ref={password} required type='password' />
+                    {error && <Error>Username or email already exist</Error>}
                     <Agreement>
                         By creating an account, I consent to the processing of my personal
                         data in accordance with the <b>PRIVACY POLICY</b>
                     </Agreement>
-                    <Button>Create</Button>
+                    <Button type='submit'>Create</Button>
                 </Form>
             </Wrapper>
         </Container>

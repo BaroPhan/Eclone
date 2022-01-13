@@ -1,23 +1,20 @@
 const mongoose = require('mongoose')
 
-const OrderSchema = new mongoose.Schema(
+const WishlistSchema = new mongoose.Schema(
     {
-        userId: { type: String, required: true },
+        userId: { type: String, required: true, unique: true },
         products: [
             {
                 _id: { type: String, required: true },
-                quantity: { type: Number, default: 1 },
+                quantity: { type: Number, default: 1, writable: true },
                 size: { type: String },
                 color: { type: String },
                 img: { type: String },
                 price: { type: Number, default: 0 }
             }
         ],
-        amount: { type: Number, required: true },
-        address: { type: Object, required: true },
-        status: { type: String, default: "pending" }
-
+        total: { type: Number, default: 0 }
     }, { timestamps: true }
 )
 
-module.exports = mongoose.model("Order", OrderSchema)
+module.exports = mongoose.model("Wishlist", WishlistSchema)

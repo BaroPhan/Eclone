@@ -36,7 +36,7 @@ const productSlice = createSlice({
         deleteProductFailure: (state) => {
             state.error = true; state.isFetching = false;
         },
-         //UPDATE PRODUCT
+        //UPDATE PRODUCT
         updateProductStart: (state) => {
             state.isFetching = true;
             state.error = false;

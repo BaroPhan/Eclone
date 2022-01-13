@@ -3,35 +3,32 @@ import { createSlice } from '@reduxjs/toolkit'
 const cartSlice = createSlice({
     name: 'cart',
     initialState: {
-        products: [],
-        quantity: 0,
-        total: 0
+        currentCart: null,
+        carts: [],
+        isFetching: false,
+        error: false
     },
     reducers: {
-        addProduct: (state, action) => {
-            state.quantity += 1
-            state.products.push(action.payload)
-            state.total += action.payload.price * action.payload.quantity
+        setCurrentCart: (state, action) => { state.currentCart = action.payload },
+        updateCartStart: (state, action) => {
+            state.isFetching = true; state.error = false
         },
-        updateCart: (state, action) => {
-            const findProduct = state.products.find(item => item.uuid === action.payload.uuid)
-            if (findProduct) {
-                findProduct.quantity = action.payload.quantity
-                state.total += action.payload.updatedPrice
-            }
+        updateCartSuccess: (state, action) => {
+            console.log(action.payload)
+            state.isFetching = false; state.error = false
+            state.currentCart = action.payload
         },
-        removeProduct: (state, action) => {
-            state.products = state.products.filter(item => item.uuid !== action.payload.uuid)
-            state.quantity -= 1
-            state.total -= action.payload.price
+        updateCartFailure: (state, action) => {
+            state.error = true; state.isFetching = false;
         },
         resetCart: (state) => {
-            state.products = [];
-            state.quantity = 0;
-            state.total = 0;
+            state.currentCart = null;
+        },
+        emptyCart: (state) => {
+            state.currentCart.products = [];
         }
     },
 })
 
-export const { addProduct, updateCart, removeProduct, resetCart } = cartSlice.actions
+export const { setCurrentCart, updateCartStart, updateCartSuccess, updateCartFailure, updateCart, removeProduct, resetCart, emptyCart } = cartSlice.actions
 export default cartSlice.reducer

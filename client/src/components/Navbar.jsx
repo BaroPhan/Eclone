@@ -1,15 +1,17 @@
 import { Search, ShoppingCartOutlined } from '@mui/icons-material'
 import Badge from '@mui/material/Badge';
-import React from 'react'
+import React, { useRef } from 'react'
 import styled from 'styled-components'
 import { mobile } from '../responsive'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
-import { logOutUser, resetCarts } from '../redux/apiCalls';
+import { logOutUser, resetCarts, resetWishlists } from '../redux/apiCalls';
+import { NavDropdown } from 'react-bootstrap'
 
 const Container = styled.div`
     height: 60px;
     position: sticky;
+    margin-bottom: 10px;
     top: 0;
     z-index: 5;
     background-color: white;
@@ -37,6 +39,7 @@ const SearchContainer = styled.div`
     display: flex;
     align-items: center;
     margin-left: 25px;
+    margin-bottom: 10px;
     padding: 5px;
     ${mobile({ marginLeft: "15px" })}
 `
@@ -79,31 +82,54 @@ const Img = styled.img`
     height: 30px;
     border-radius: 50%;
     cursor: pointer;
-    margin-left: 10px;
+    margin-right: 10px;
 `
-
+const Span = styled.span`
+    text-decoration: none;
+    color: black;
+`
+const SearchForm = styled.form``
+const Toggle = styled(NavDropdown)`
+    text-decoration: none;
+    .dropdown-toggle::after {
+        display: none;
+    }
+`;
 
 export const Navbar = () => {
-    const quantity = useSelector(state => state.cart.quantity)
+    const quantity = useSelector(state => state.cart.currentCart)?.products.length
     const user = useSelector(state => state.user.currentUser)
+    const cats = useSelector(state => state.category.categories)
+    const search = useRef()
     const dispatch = useDispatch()
     const navigate = useNavigate()
+
 
     const handleClick = (e) => {
         e.preventDefault()
         resetCarts(dispatch)
+        resetWishlists(dispatch)
         logOutUser(dispatch).then(navigate('/login'))
     }
+    const handleSearch = (e) => {
+        e.preventDefault()
+        if (cats.find(item => item.name === search.current.value)) {
+            navigate(`/products/${search.current.value}`)
+        }
+    }
+
 
     return (
         <Container>
             <Wrapper>
                 <Left>
                     <Language>EN</Language>
-                    <SearchContainer>
-                        <Input placeholder="Search" />
-                        <Search style={{ color: "gray", fontSize: 16 }} />
-                    </SearchContainer>
+                    <SearchForm onSubmit={handleSearch}>
+                        <SearchContainer>
+                            <Input placeholder="Search product..." ref={search} />
+                            <Search style={{ color: "gray", fontSize: 16 }} />
+                        </SearchContainer>
+                    </SearchForm>
                 </Left>
                 <Center>
                     <Link to='/' style={{ textDecoration: "none" }}>
@@ -113,14 +139,31 @@ export const Navbar = () => {
                 <Right>
                     {user
                         ? <>
-                            <MenuItem onClick={handleClick}>
-                                LOG OUT
+                            <MenuItem>
+                                <Toggle
+                                    id="nav-dropdown-dark-example"
+                                    title={
+                                        <>
+                                            <Img src={user?.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"} />
+                                            <Span>
+                                                {user.username.toUpperCase()}
+                                            </Span>
+                                        </>
+                                    }
+                                >
+                                    <NavDropdown.Item href='/profile'>Profile</NavDropdown.Item>
+                                    <NavDropdown.Item href='/orders'>Orders</NavDropdown.Item>
+                                    <NavDropdown.Item href='/wishlist'>Wishlist</NavDropdown.Item>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item onClick={handleClick}>Log out</NavDropdown.Item>
+                                </Toggle>
                             </MenuItem>
                             <MenuItem>
-                                <Link to={`/user/${user._id}`} style={{ textDecoration: "none", color: "black" }}>
-                                    {user.username.toUpperCase()}
+                                <Link to='/cart' style={{ textDecoration: "none" }}>
+                                    <Badge badgeContent={quantity} color="primary" >
+                                        <ShoppingCartOutlined color="action" />
+                                    </Badge>
                                 </Link>
-                                <Img src={user?.img ? user.img : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"} />
                             </MenuItem>
                         </>
                         : <>
@@ -136,15 +179,9 @@ export const Navbar = () => {
                             </MenuItem>
                         </>
                     }
-                    <MenuItem>
-                        <Link to='/cart' style={{ textDecoration: "none" }}>
-                            <Badge badgeContent={quantity} color="primary" >
-                                <ShoppingCartOutlined color="action" />
-                            </Badge>
-                        </Link>
-                    </MenuItem>
+
                 </Right>
             </Wrapper>
-        </Container>
+        </Container >
     )
 }

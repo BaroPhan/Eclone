@@ -5,9 +5,12 @@ import { CategoryItem } from './CategoryItem'
 import { mobile } from '../responsive'
 import { useState } from 'react'
 import { ArrowLeftOutlined, ArrowRightOutlined } from '@mui/icons-material'
+import { useDispatch, useSelector } from 'react-redux'
+import { useEffect } from 'react'
+import { getCategories } from '../redux/apiCalls'
 
 const Container = styled.div`
-    padding: 20px;
+    /* padding: 20px; */
     display: flex;
     position: relative;
     overflow: hidden;
@@ -32,7 +35,6 @@ const Arrow = styled.div`
 const Wrapper = styled.div`
     display: flex;
     width:100vw;
-
     transition: all 1.5s ease; 
     transform: translateX(${(props) => props.slideIndex * - 100}vw);
 `
@@ -44,6 +46,15 @@ const Slide = styled.div`
 
 export const Categories = () => {
     const [slideIndex, setSlideIndex] = useState(0)
+    const dispatch = useDispatch()
+    const cats = useSelector(state => state.category.categories)
+
+    useEffect(() => {
+        getCategories(dispatch)
+    }, [dispatch])
+
+
+
     const handleClick = (direction) => {
         if (direction === "left") {
             setSlideIndex(slideIndex > 0 ? slideIndex - 1 : 2)
@@ -59,9 +70,9 @@ export const Categories = () => {
                 <ArrowLeftOutlined />
             </Arrow>
             <Wrapper slideIndex={slideIndex} >
-                {categories.map(item => (
-                    <Slide key={item}>
-                        <CategoryItem key={item} item={item} />
+                {cats.map(item => (
+                    <Slide key={item._id}>
+                        <CategoryItem key={item._id} item={item} />
                     </Slide>
                 ))}
             </Wrapper>
